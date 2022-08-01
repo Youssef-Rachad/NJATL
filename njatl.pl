@@ -12,22 +12,57 @@ use experimental qw( switch ); # Sqitch Casee
 my $Config = Config::Tiny->read($Bin.'/njatl.cfg') or die "Could not open config file. Check 'njatl.cfg' in same directory as 'njatl.pl'";
 
 my $debug=0;
-my $content='';
+my $action=''  ; my $content='';
 my $greeting=''; my $help='';
 # save arguments following -w or --word in the scalar
 # =s means that an argument follows
-GetOptions( 'action=s' => \my $action, 'content=s' => \$content, 'greeting' => \$greeting, 'help' => \$help);
+GetOptions( 'action=s' => \$action, 'content=s' => \$content, 'greeting' => \$greeting, 'help' => \$help, 'debug' => \$debug);
 
-
-print "Am i using the global array? @ARGV\n";
-if($debug==1){
-    print "$action - $content\n";
+if($debug){
+    print "Got a=$action - c=$content\n";
+    print "Am i using the global array? @ARGV\n";
 }
 
-if($help ne ''){
-    print "Usage: Yet Another Todo List\n\taction:STRING [create, list, mark, delete]\n\tcontent:STRING string to be passed or integer for mark and delete actions\n\tgreeting:FLAG optional for greeting in list action\n";
+sub help_me {
+    return "Usage: Yet Another Todo List\n\taction:STRING [create, list, mark, delete]\n\tcontent:STRING string to be passed or integer for mark and delete actions\n\tgreeting:FLAG optional for greeting in list action\n"
+}
+
+# TODO lol this does not work in the mark action
+sub list_todos {
+    my ($file, $filter) = @_;
+    open(my $readfile, '<:encoding(UTF-8)', $file) or die "Could not open todofile '$file'";
+    if($debug){print 'in list_todo subroutine: '.$file.' '; print -s $readfile;}
+    my $offset=" ";
+    if($filter ne ''){
+        while(my $line_todo = <$readfile>){ # <> used for files and globs
+            next if ($line_todo !~ /\+$filter/); # filter out tags
+            $offset = $.;
+            chomp $line_todo; # removes trailing new line
+            if($line_todo =~ /\[x\]/) {print colored($offset.$line_todo."\n", "bright_green");}
+            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo."\n", "bright_yellow");}
+            elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo."\n", "bright_cyan");}
+            else{ print $offset.$line_todo."\n";}
+        }
+    }
+    else{
+        while(my $line_todo = <$readfile>){ # <> used for files and globs
+            $offset = ($.%5==0 ? $. : " ");
+            chomp $line_todo; # removes trailing new line
+            if($line_todo =~ /\[x\]/) {print colored($offset.$line_todo."\n", "bright_green");}
+            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo."\n", "bright_yellow");}
+            elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo."\n", "bright_cyan");}
+            else{ print $offset.$line_todo."\n";}
+        }
+    }
+    print "End of list\n";
+    close $readfile;
+
+}
+if($help){
+    print help_me();
     exit;
 }
+# TODO check that args are valid before accessing todo file
 my $todofile = $Bin.'/todo.txt';
 if($action eq 'create'){
     open(my $livefile, '>>:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
@@ -37,40 +72,19 @@ if($action eq 'create'){
 }
 elsif($action eq 'list'){
     if($debug==1){print "in greeting flag, got $greeting.";}
-    if($greeting ne ''){ my $date = localtime->strftime('%A, %b %e %Y'); print "$date | Today's Tasks:\n=====================================\n";}
-    open(my $livefile, '<:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
-    if($content ne ''){
-    while(my $line = <$livefile>){ # <> used for files and globs
-        next if ($line !~ /\+$content/); # filter out tags
-        chomp $line; # removes trailing new line
-        if($line =~ /\[x\]/) {print colored(" ".$line."\n", "green");}
-        else{ print $line."\n";}
-
-    }
-}
-    else{
-    while(my $line = <$livefile>){ # <> used for files and globs
-        chomp $line; # removes trailing new line
-        if($line =~ /\[x\]/) {print colored(" ".$line."\n", "bright_green");}
-        elsif($line =~ /\[r\]/) {print colored(" ".$line."\n", "bright_yellow");}
-        elsif($line =~ /\[-\]/) {print colored(" ".$line."\n", "bright_cyan");}
-        else{ print " ".$line."\n";}
-    }
-}
-    print "End of list\n";
-    close $livefile;
+    if($greeting ne ''){ my $date = localtime->strftime('%A, %b %d %Y'); print "$date | Today's Tasks:\n=====================================\n";}
+    list_todos($todofile, $content);
+    #    open(my $livefile, '<:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'"; #    if($content ne ''){ #    while(my $line = <$livefile>){ # <> used for files and globs #        next if ($line !~ /\+$content/); # filter out tags #        chomp $line; # removes trailing new line #        if($line =~ /\[x\]/) {print colored(" ".$line."\n", "green");} #        else{ print $line."\n";} # #    } #} #    else{ #    while(my $line = <$livefile>){ # <> used for files and globs #        chomp $line; # removes trailing new line #        if($line =~ /\[x\]/) {print colored(" ".$line."\n", "bright_green");} #        elsif($line =~ /\[r\]/) {print colored(" ".$line."\n", "bright_yellow");} #        elsif($line =~ /\[-\]/) {print colored(" ".$line."\n", "bright_cyan");} #        else{ print " ".$line."\n";} #    } #} #    print "End of list\n"; #    close $livefile;
 }
 elsif ($action eq 'mark'){
     # check that we are given a positive integer index
     if($content =~ /^\D+$/){die "Must provide integer argument, got $content";}
     open(my $livefile, '<:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
+    if($debug){print $todofile.' '; print -s $livefile;}
     my @todos;
     while(my $todo = <$livefile>){
-        if($todo =~ /\>/){
-            push @todos, (split(/\s/, $todo))[0]."\n";
-        }else{
-            push @todos, $todo;
-        }
+        push @todos, $todo if ($todo !~ /^\s+$/);
+        #if($todo =~ /^\s+$/){ #   push @todos, (split(/\s/, $todo))[0]."\n"; #}else{ #   push @todos, $todo; #}
     }
     close $livefile;
     if($content > scalar @todos){
@@ -86,7 +100,31 @@ elsif ($action eq 'mark'){
     open($livefile, '>:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
     print $livefile @todos;
     close $livefile;
-    print @todos;
+
+    open(my $readfile, '<:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
+    if($debug){print $todofile.' '; print -s $readfile;}
+    my $filter ='';
+    if($filter ne ''){
+        while(my $line = <$readfile>){ # <> used for files and globs
+            next if ($line !~ /\+$filter/); # filter out tags
+            chomp $line; # removes trailing new line
+            if($line =~ /\[x\]/) {print colored(" ".$line."\n", "bright_green");}
+            elsif($line =~ /\[r\]/) {print colored(" ".$line."\n", "bright_yellow");}
+            elsif($line =~ /\[-\]/) {print colored(" ".$line."\n", "bright_cyan");}
+            else{ print " $line\n";}
+        }
+    }
+    else{
+        while(my $line = <$readfile>){ # <> used for files and globs
+            chomp $line; # removes trailing new line
+            if($line =~ /\[x\]/) {print colored(" ".$line."\n", "bright_green");}
+            elsif($line =~ /\[r\]/) {print colored(" ".$line."\n", "bright_yellow");}
+            elsif($line =~ /\[-\]/) {print colored(" ".$line."\n", "bright_cyan");}
+            else{ print " $line\n";}
+        }
+    }
+    print "End of list\n";
+    close $readfile;
 }
 elsif($action eq 'delete'){
     if($content =~ /^\D+$/){die "Must provide integer argument, got $content";}
