@@ -32,26 +32,29 @@ sub list_todos {
     my ($file, $filter) = @_;
     open(my $readfile, '<:encoding(UTF-8)', $file) or die "Could not open todofile '$file'";
     if($debug){print 'in list_todo subroutine: '.$file.' '; print -s $readfile;}
-    my $offset=" ";
+    my $time_now = Time::Piece->new(); #https://stackoverflow.com/questions/22676764/getting-minutes-difference-between-two-timepiece-objects
+    my $offset=" "; my $urgent="";
     if($filter ne ''){
         while(my $line_todo = <$readfile>){ # <> used for files and globs
             next if ($line_todo !~ /\+$filter/); # filter out tags
-            $offset = $.;
+            $offset = $.; 
             chomp $line_todo; # removes trailing new line
+$urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < 7 ? " SOON": "";
             if($line_todo =~ /\[x\]/) {print colored($offset.$line_todo."\n", "bright_green");}
             elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo."\n", "bright_yellow");}
             elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo."\n", "bright_cyan");}
-            else{ print $offset.$line_todo."\n";}
+            else{ print $offset.$line_todo."$urgent\n";}
         }
     }
     else{
         while(my $line_todo = <$readfile>){ # <> used for files and globs
             $offset = ($.%5==0 ? $. : " ");
             chomp $line_todo; # removes trailing new line
+$urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < 7 ? " SOON": "";
             if($line_todo =~ /\[x\]/) {print colored($offset.$line_todo."\n", "bright_green");}
             elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo."\n", "bright_yellow");}
             elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo."\n", "bright_cyan");}
-            else{ print $offset.$line_todo."\n";}
+            else{ print $offset.$line_todo."$urgent\n";}
         }
     }
     print "End of list\n";
