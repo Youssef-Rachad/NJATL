@@ -6,13 +6,15 @@
 - ?? Get reminders
 
 ## Main Objectives
-- [ ] CRUD complete
-- [ ] Implement priority
-- [ ] Support PARA
+- [x] CRUD complete
+- [DEPRECATED] Implement priority
+- [x] Support PARA
     - Workspace, Project, Archive
-- [ ] Support Agile like structure
+- [x] Support Agile like structure
 - [ ] Due dates
 - [ ] Implement filter system
+    - Filter by project
+    - Filter by status
 
 ## Secondary Objectives
 - [ ] Start and End date
