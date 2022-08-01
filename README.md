@@ -17,3 +17,10 @@
 ## Secondary Objectives
 - [ ] Start and End date
 - [ ] Calendar integration
+
+## Usage
+- todolist create 'my todo @due+project+project'
+- todolist mark idx status
+- todolist list filters -status=status
+- todolist remove idx
+- todolist edit idx 'my todo @due+project'

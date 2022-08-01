@@ -2,18 +2,24 @@
 use strict;
 use warnings; # Good to have
 use Getopt::Long; # Arg Parse
-#use Cwd 'abs_path';
 use FindBin '$Bin'; # Get location
 use Time::Piece; # Date and Time Formatting
 use Term::ANSIColor; # Colours
+use Config::Tiny; # Config time
+
+use experimental qw( switch ); # Sqitch Casee
+
+my $Config = Config::Tiny->read($Bin.'/njatl.cfg') or die "Could not open config file. Check 'njatl.cfg' in same directory as 'njatl.pl'";
 
 my $debug=0;
+my $content='';
 my $greeting=''; my $help='';
 # save arguments following -w or --word in the scalar
 # =s means that an argument follows
-GetOptions( 'action=s' => \my $action, 'content=s' => \my $content, 'greeting' => \$greeting, 'help' => \$help);
+GetOptions( 'action=s' => \my $action, 'content=s' => \$content, 'greeting' => \$greeting, 'help' => \$help);
 
 
+print "Am i using the global array? @ARGV\n";
 if($debug==1){
     print "$action - $content\n";
 }
@@ -35,9 +41,9 @@ elsif($action eq 'list'){
     open(my $livefile, '<:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
     if($content ne ''){
     while(my $line = <$livefile>){ # <> used for files and globs
-        next if ($line !~ /$content/);
+        next if ($line !~ /\+$content/); # filter out tags
         chomp $line; # removes trailing new line
-        if($line =~ /\[x\]/) {print colored($line."\n", "green");}
+        if($line =~ /\[x\]/) {print colored(" ".$line."\n", "green");}
         else{ print $line."\n";}
 
     }
@@ -45,8 +51,10 @@ elsif($action eq 'list'){
     else{
     while(my $line = <$livefile>){ # <> used for files and globs
         chomp $line; # removes trailing new line
-        if($line =~ /\[x\]/) {print colored($line."\n", "green");}
-        else{ print $line."\n";}
+        if($line =~ /\[x\]/) {print colored(" ".$line."\n", "bright_green");}
+        elsif($line =~ /\[r\]/) {print colored(" ".$line."\n", "bright_yellow");}
+        elsif($line =~ /\[-\]/) {print colored(" ".$line."\n", "bright_cyan");}
+        else{ print " ".$line."\n";}
     }
 }
     print "End of list\n";
@@ -68,7 +76,13 @@ elsif ($action eq 'mark'){
     if($content > scalar @todos){
         die "Index provided ($content) exceeds todo-list length (".scalar @todos.")";
     }
-    $todos[$content] =~ s/\[ \]/[x]/; # magic!!
+    given($ARGV[0]){
+        when($Config->{status}->{todo}){$todos[$content] =~ s/\[.\]/[ ]/;}
+        when($Config->{status}->{progress}){$todos[$content] =~ s/\[.\]/[-]/;}
+        when($Config->{status}->{review}){$todos[$content] =~ s/\[.\]/[r]/;}
+        when($Config->{status}->{complete}){$todos[$content] =~ s/\[.\]/[x]/;}
+        default {die "Must provide valid status. Current Configuration:\n\t- todo: \t$Config->{status}->{todo}\n\t- in-progress \t$Config->{status}->{progress}\n\t- review: \t$Config->{status}->{review}\n\t- complete: \t$Config->{status}->{complete}\n";} }
+    #$todos[$content] =~ s/\[ \]/[x]/; # magic!!
     open($livefile, '>:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
     print $livefile @todos;
     close $livefile;
