@@ -51,8 +51,10 @@ sub list_todos {
             $Config->{status}->{review}   => 'r',
             $Config->{status}->{complete} => 'x'
         );
+        my $filter_string = "(".join('|', split(/\+/, $filter)).")";
+        if($debug){print "\nfilter on regex $filter_string\n";}
         while(my $line_todo = <$readfile>){ # <> used for files and globs
-            next if ($filter eq '' ? 0 : $line_todo !~ /\+$filter/); # filter out tags
+            next if ($filter eq '' ? 0 : $line_todo !~ /\+$filter_string/); # filter out tags
             next if ($status eq '' ? 0 : $line_todo !~ /\[$statuses{$status}\]/); # filter out tags
             $offset = $.; # always get current line number for quick editing
             chomp $line_todo; # removes trailing new line
