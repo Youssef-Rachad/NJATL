@@ -65,10 +65,10 @@ if($debug){ print "Got a=$action - c=$content\n"; print "Am i using the global a
 sub help_me {
     return "Usage: Not Just Another Todo List".
     "\n\taction:STRING\t[create, list, mark, edit, delete]".
-    "\n\t\tcreate\tnjatl create 'my todo \@due+project+project'".
+    "\n\t\tcreate\tnjatl create 'my todo \@YYYY/MM/DD+project+project'".
     "\n\t\tmark\tnjatl mark idx status".
-    "\n\t\tlist\tnjatl list filters statuses".
-    "\n\t\tedit\tnjatl edit idx 'my todo \@due+project'".
+    "\n\t\tlist\tnjatl list filter+filter status".
+    "\n\t\tedit\tnjatl edit idx 'my todo \@YYYY/MM/DD+project'".
     "\n\t\tdelete\tnjatl delete idx".
     "\n\tcontent:STRING\tstring to be passed for create and edit actions".
     "\n\tindex:Integer\tinteger for mark, edit and delete actions. Indices start at 1".
