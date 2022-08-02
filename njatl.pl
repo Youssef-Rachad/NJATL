@@ -32,30 +32,30 @@ if($help){ # YATL on Slant Relief
     #    print '       _______\/\\\_______\/\\\_______\/\\\_______\/\\\_______\/\\\\\\\\\\\\\\\_ ', "\n";
     #    print '        _______\///________\///________\///________\///________\///////////////__', "\n";
     #    YATL in blocks
-print " .-----------------. .----------------.  .----------------.  .----------------.  .----------------.", "\n";
-print "| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |", "\n";
-print "| | ____  _____  | || |     _____    | || |      __      | || |  _________   | || |   _____      | |", "\n";
-print "| ||_   \\|_   _| | || |    |_   _|   | || |     /  \\     | || | |  _   _  |  | || |  |_   _|     | |", "\n";
-print "| |  |   \\ | |   | || |      | |     | || |    / /\\ \\    | || | |_/ | | \\_|  | || |    | |       | |", "\n";
-print "| |  | |\\ \\| |   | || |   _  | |     | || |   / ____ \\   | || |     | |      | || |    | |   _   | |", "\n";
-print "| | _| |_\\   |_  | || |  | |_' |     | || | _/ /    \\ \\_ | || |    _| |_     | || |   _| |__/ |  | |", "\n";
-print "| ||_____|\\____| | || |  `.___.'     | || ||____|  |____|| || |   |_____|    | || |  |________|  | |", "\n";
-print "| |              | || |              | || |              | || |              | || |              | |", "\n";
-print "| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |", "\n";
-print " '----------------'  '----------------'  '----------------'  '----------------'  '----------------'", "\n";
+    print " .-----------------. .----------------.  .----------------.  .----------------.  .----------------.", "\n";
+    print "| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |", "\n";
+    print "| | ____  _____  | || |     _____    | || |      __      | || |  _________   | || |   _____      | |", "\n";
+    print "| ||_   \\|_   _| | || |    |_   _|   | || |     /  \\     | || | |  _   _  |  | || |  |_   _|     | |", "\n";
+    print "| |  |   \\ | |   | || |      | |     | || |    / /\\ \\    | || | |_/ | | \\_|  | || |    | |       | |", "\n";
+    print "| |  | |\\ \\| |   | || |   _  | |     | || |   / ____ \\   | || |     | |      | || |    | |   _   | |", "\n";
+    print "| | _| |_\\   |_  | || |  | |_' |     | || | _/ /    \\ \\_ | || |    _| |_     | || |   _| |__/ |  | |", "\n";
+    print "| ||_____|\\____| | || |  `.___.'     | || ||____|  |____|| || |   |_____|    | || |  |________|  | |", "\n";
+    print "| |              | || |              | || |              | || |              | || |              | |", "\n";
+    print "| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |", "\n";
+    print " '----------------'  '----------------'  '----------------'  '----------------'  '----------------'", "\n";
     print help_me();
     exit;
 }
 # Handling shorthand
 if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
-    if($action eq 'create'){$content   = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid content: got $ARGV[1]";}
-    if($action eq 'mark')  {$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
-        $status    = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid status: got $ARGV[2]";}
-    if($action eq 'list')  {$filters   = $#ARGV > -1   ? $ARGV[1] : '';
-        $status    = $#ARGV == 2   ? $ARGV[2] : '';}
-    if($action eq 'edit')  {$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
-        $content   = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid content: got $ARGV[2]";}
-    if($action eq 'delete'){$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index got $ARGV[1]";}
+    if($action eq 'create'){$content   = $ARGV[1] ne ''? $ARGV[1]     : die "Must provide valid content: got $ARGV[1]";}
+    if($action eq 'mark')  {$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index: got $ARGV[1]";
+                            $status    = $ARGV[2] ne ''? $ARGV[2]     : die "Must provide valid status: got $ARGV[2]";}
+    if($action eq 'list')  {$filters   = $#ARGV > -1   ? $ARGV[1]     : '';
+                            $status    = $#ARGV == 2   ? $ARGV[2]     : '';}
+    if($action eq 'edit')  {$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index: got $ARGV[1]";
+                            $content   = $ARGV[2] ne ''? $ARGV[2]     : die "Must provide valid content: got $ARGV[2]";}
+    if($action eq 'delete'){$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index got $ARGV[1]";}
 }
 else{
     die "Must provide valid action";
@@ -71,7 +71,7 @@ sub help_me {
     "\n\t\tedit\tnjatl edit idx 'my todo \@due+project'".
     "\n\t\tdelete\tnjatl delete idx".
     "\n\tcontent:STRING\tstring to be passed for create and edit actions".
-    "\n\tindex:Integer\tinteger for mark, edit and delete actions".
+    "\n\tindex:Integer\tinteger for mark, edit and delete actions. Indices start at 1".
     "\n\tgreeting:FLAG\toptional for greeting in list action".
     "\n\thelp:FLAG\tthis message :))".
     "\n\tdebug:FLAG\toptional for debugging messages\n";
@@ -99,22 +99,22 @@ sub list_todos {
             next if ($status eq '' ? 0 : $line_todo !~ /\[$statuses{$status}\]/); # filter out tags
             $offset = $.; # always get current line number for quick editing
             chomp $line_todo; # removes trailing new line
-            $urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < 7 ? " SOON": "";
+            $urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
             if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
-            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow").colored("$urgent", "white", "on_red")."\n";}
-            elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan").colored("$urgent", "white", "on_red")."\n";}
-            else{ print $offset.$line_todo.colored("$urgent", "white", "on_red")."\n";}
+            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow")." ".colored("$urgent", "white", "on_red")."\n";}
+            elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")." ".colored("$urgent", "white", "on_red")."\n";}
+            else{ print $offset.$line_todo." ".colored("$urgent", "white", "on_red")."\n";}
         }
     }
     else{
         while(my $line_todo = <$readfile>){ # <> used for files and globs
             $offset = ($.%5==0 ? $. : " ");
             chomp $line_todo; # removes trailing new line
-            $urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < 7 ? " SOON": "";
+            $urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
             if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
-            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow").colored("$urgent", "white", "on_red")."\n";}
-            elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan").colored("$urgent", "white", "on_red")."\n";}
-            else{ print $offset.$line_todo.colored("$urgent", "white", "on_red")."\n";}
+            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow")." ".colored("$urgent", "white", "on_red")."\n";}
+            elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")." ".colored("$urgent", "white", "on_red")."\n";}
+            else{ print $offset.$line_todo." ".colored("$urgent", "white", "on_red")."\n";}
         }
     }
     print "End of list\n";
@@ -147,6 +147,7 @@ elsif ($action eq 'mark'){
     if($index > scalar @todos){
         die "Index provided ($index) exceeds todo-list length (".scalar @todos.")";
     }
+    if($debug){print "Got status $status";}
     given($status){
         when($Config->{status}->{todo}){$todos[$index]     =~ s/\[.\]/[ ]/;}
         when($Config->{status}->{progress}){$todos[$index] =~ s/\[.\]/[-]/;}

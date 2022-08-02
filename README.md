@@ -3,7 +3,7 @@
 ## Productivity Tracker
 - Include metadata for each todo
 - Query todos by filter
-- ?? Get reminders
+- Get reminders
 
 ## Main Objectives
 - [x] CRUD complete
@@ -12,7 +12,7 @@
     - Workspace, Project, Archive
 - [x] Support Agile like structure
 - [x] Due dates
-- [ ] Implement filter system
+- [x] Implement filter system
     - [x] Filter by project
     - [x] Filter by status
 - [ ] Archive mechanism
