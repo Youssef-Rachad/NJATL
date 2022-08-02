@@ -21,25 +21,66 @@ GetOptions(
     'index=i' => \$index    , 'filter=s' => \$filters , 'status=s' => \$status,
     'greeting' => \$greeting, 'help' => \$help        , 'debug' => \$debug);
 
+if($help){ # YATL on Slant Relief
+    #    print '__/\\\________/\\\_____/\\\\\\\\\_____/\\\\\\\\\\\\\\\__/\\\_____________        ', "\n";
+    #    print ' _\///\\\____/\\\/____/\\\\\\\\\\\\\__\///////\\\/////__\/\\\_____________       ', "\n";
+    #    print '  ___\///\\\/\\\/_____/\\\/////////\\\_______\/\\\_______\/\\\_____________      ', "\n";
+    #    print '   _____\///\\\/______\/\\\_______\/\\\_______\/\\\_______\/\\\_____________     ', "\n";
+    #    print '    _______\/\\\_______\/\\\\\\\\\\\\\\\_______\/\\\_______\/\\\_____________    ', "\n";
+    #    print '     _______\/\\\_______\/\\\/////////\\\_______\/\\\_______\/\\\_____________   ', "\n";
+    #    print '      _______\/\\\_______\/\\\_______\/\\\_______\/\\\_______\/\\\_____________  ', "\n";
+    #    print '       _______\/\\\_______\/\\\_______\/\\\_______\/\\\_______\/\\\\\\\\\\\\\\\_ ', "\n";
+    #    print '        _______\///________\///________\///________\///________\///////////////__', "\n";
+    #    YATL in blocks
+print " .-----------------. .----------------.  .----------------.  .----------------.  .----------------.", "\n";
+print "| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |", "\n";
+print "| | ____  _____  | || |     _____    | || |      __      | || |  _________   | || |   _____      | |", "\n";
+print "| ||_   \\|_   _| | || |    |_   _|   | || |     /  \\     | || | |  _   _  |  | || |  |_   _|     | |", "\n";
+print "| |  |   \\ | |   | || |      | |     | || |    / /\\ \\    | || | |_/ | | \\_|  | || |    | |       | |", "\n";
+print "| |  | |\\ \\| |   | || |   _  | |     | || |   / ____ \\   | || |     | |      | || |    | |   _   | |", "\n";
+print "| | _| |_\\   |_  | || |  | |_' |     | || | _/ /    \\ \\_ | || |    _| |_     | || |   _| |__/ |  | |", "\n";
+print "| ||_____|\\____| | || |  `.___.'     | || ||____|  |____|| || |   |_____|    | || |  |________|  | |", "\n";
+print "| |              | || |              | || |              | || |              | || |              | |", "\n";
+print "| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |", "\n";
+print " '----------------'  '----------------'  '----------------'  '----------------'  '----------------'", "\n";
+    print help_me();
+    exit;
+}
 # Handling shorthand
-if($action eq '' and $ARGV[0] ne ''){ $action = $ARGV[0];
+if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
     if($action eq 'create'){$content   = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid content: got $ARGV[1]";}
     if($action eq 'mark')  {$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
-                            $status    = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid status: got $ARGV[2]";}
+        $status    = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid status: got $ARGV[2]";}
     if($action eq 'list')  {$filters   = $#ARGV > -1   ? $ARGV[1] : '';
-                            $status    = $#ARGV == 2   ? $ARGV[2] : '';}
+        $status    = $#ARGV == 2   ? $ARGV[2] : '';}
     if($action eq 'edit')  {$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
-                            $content   = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid content: got $ARGV[2]";}
+        $content   = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid content: got $ARGV[2]";}
     if($action eq 'delete'){$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index got $ARGV[1]";}
+}
+else{
+    die "Must provide valid action";
 }
 if($debug){ print "Got a=$action - c=$content\n"; print "Am i using the global array? @ARGV\n"; }
 
 sub help_me {
-    return "Usage: Yet Another Todo List \n\taction:STRING\t[create, list, mark, edit, delete] \n\tcontent:STRING\tstring to be passed for edit, mark and delete actions \n\tindex:Integer\tinteger for mark, edit and delete actions \n\tgreeting:FLAG\toptional for greeting in list action \n\thelp:FLAG\tthis message :)) \n\tdebug:FLAG\toptional for debugging messages\n";
+    return "Usage: Not Just Another Todo List".
+    "\n\taction:STRING\t[create, list, mark, edit, delete]".
+    "\n\t\tcreate\tnjatl create 'my todo \@due+project+project'".
+    "\n\t\tmark\tnjatl mark idx status".
+    "\n\t\tlist\tnjatl list filters statuses".
+    "\n\t\tedit\tnjatl edit idx 'my todo \@due+project'".
+    "\n\t\tdelete\tnjatl delete idx".
+    "\n\tcontent:STRING\tstring to be passed for create and edit actions".
+    "\n\tindex:Integer\tinteger for mark, edit and delete actions".
+    "\n\tgreeting:FLAG\toptional for greeting in list action".
+    "\n\thelp:FLAG\tthis message :))".
+    "\n\tdebug:FLAG\toptional for debugging messages\n";
 }
 
 sub list_todos {
     my ($file, $filter, $status) = @_;
+    $filter = '' if !(defined $filter);
+    $status = '' if !(defined $status);
     open(my $readfile, '<:encoding(UTF-8)', $file) or die "Could not open todofile '$file'";
     if($debug){print 'in list_todo subroutine: '.$file.' '; print -s $readfile;}
     my $time_now = Time::Piece->new(); #https://stackoverflow.com/questions/22676764/getting-minutes-difference-between-two-timepiece-objects
@@ -79,10 +120,6 @@ sub list_todos {
     print "End of list\n";
     close $readfile;
 
-}
-if($help){
-    print help_me();
-    exit;
 }
 # TODO check that args are valid before accessing todo file
 my $todofile = $Bin.'/todo.txt';

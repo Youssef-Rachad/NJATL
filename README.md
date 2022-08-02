@@ -28,19 +28,19 @@
 ## Usage
 Note that the shorthand uses are strict in formatting
 
-- todolist create 'my todo @due+project+project'
-    - todolist -action=create -content='my todo @due+project+project'
-    - todolist -action=create -task='my todo' -duedate='due' -projects='project project'
+- njatl create 'my todo @due+project+project'
+    - njatl -action=create -content='my todo @due+project+project'
+    - (TODO) njatl -action=create -task='my todo' -duedate='due' -projects='project project'
 
-- todolist mark idx status
-    - todolist -action=mark -index=idx -status=status
+- njatl mark idx status
+    - njatl -action=mark -index=idx -status=status
 
-- todolist list filters statuses
-    - todolist -action=list -filter=filters -status=statuses
+- njatl list filters statuses
+    - njatl -action=list -filter=filters -status=statuses
 
-- todolist remove idx
-    - todolist -action=remove -index=idx
+- njatl remove idx
+    - njatl -action=remove -index=idx
 
-- todolist edit idx 'my todo @due+project'
-    - todolist -action=edit -index=idx -content='my todo @due+project'
-    - (TODO) todolist -action=edit -index=idx -task='my todo' -duedate='due' -projects='project project'
+- njatl edit idx 'my todo @due+project'
+    - njatl -action=edit -index=idx -content='my todo @due+project'
+    - (TODO) njatl -action=edit -index=idx -task='my todo' -duedate='due' -projects='project project'
