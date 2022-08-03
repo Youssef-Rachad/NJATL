@@ -10,7 +10,13 @@ use Config::Tiny; # Config time
 use experimental qw( switch ); # Sqitch Casee
 
 my $Config = Config::Tiny->read($Bin.'/njatl.cfg') or die "Could not open config file. Check 'njatl.cfg' in same directory as 'njatl.pl'";
-
+my @status_names = (
+    "$Config->{status}->{todo}    ",
+    "$Config->{status}->{progress}",
+    "$Config->{status}->{review}  ",
+    "$Config->{status}->{complete}"
+);
+print $status_names[0]=~/^todo\n$/;
 my $debug=0   ;
 my $action='' ; my $content=''; my $index=''; my $filters=''; my $status='';
 my $greeting=0; my $help=''   ;
@@ -51,8 +57,8 @@ if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
     if($action eq 'create'){$content   = $ARGV[1] ne ''? $ARGV[1]     : die "Must provide valid content: got $ARGV[1]";}
     if($action eq 'mark')  {$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index: got $ARGV[1]";
                             $status    = $ARGV[2] ne ''? $ARGV[2]     : die "Must provide valid status: got $ARGV[2]";}
-    if($action eq 'list')  {$filters   = $#ARGV > -1   ? $ARGV[1]     : '';
-                            $status    = $#ARGV == 2   ? $ARGV[2]     : '';}
+    if($action eq 'list')  {$filters   = $#ARGV > 0 ? (grep(!/^$ARGV[1]$/, @status_names) ?  'argv is long and element one is not a status' : '')     : '';
+                            $status    = $#ARGV == 2   ? $ARGV[2]     : $#ARGV == 1 and (grep(/^$ARGV[1]$/, @status_names) ne '')? $ARGV[1] : $ARGV[0];}
     if($action eq 'edit')  {$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index: got $ARGV[1]";
                             $content   = $ARGV[2] ne ''? $ARGV[2]     : die "Must provide valid content: got $ARGV[2]";}
     if($action eq 'delete'){$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index got $ARGV[1]";}
@@ -60,7 +66,7 @@ if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
 else{
     die "Must provide valid action";
 }
-if($debug){ print "Got a=$action - c=$content\n"; print "Am i using the global array? @ARGV\n"; }
+if($debug){ print "Got a=$action - c=$content\n"; print "Am i using the global array (length $#ARGV)? @ARGV\n"; }
 
 sub help_me {
     return "Usage: Not Just Another Todo List".
@@ -82,7 +88,7 @@ sub list_todos {
     $filter = '' if !(defined $filter);
     $status = '' if !(defined $status);
     open(my $readfile, '<:encoding(UTF-8)', $file) or die "Could not open todofile '$file'";
-    if($debug){print 'in list_todo subroutine: '.$file.' '; print -s $readfile;}
+    if($debug){print 'in list_todo subroutine: '.$file." size:"; print -s $readfile; print "\n";}
     my $time_now = Time::Piece->new(); #https://stackoverflow.com/questions/22676764/getting-minutes-difference-between-two-timepiece-objects
     my $offset=" "; my $urgent="";
     if($filter ne '' or $status ne ''){
@@ -112,7 +118,7 @@ sub list_todos {
             chomp $line_todo; # removes trailing new line
             $urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
             if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
-            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow")." ".colored("$urgent", "white", "on_red")."\n";}
+            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "rgb440")." ".colored("$urgent", "white", "on_red")."\n";}
             elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")." ".colored("$urgent", "white", "on_red")."\n";}
             else{ print $offset.$line_todo." ".colored("$urgent", "white", "on_red")."\n";}
         }
@@ -130,7 +136,7 @@ if($action eq 'create'){
     close $livefile;
 }
 elsif($action eq 'list'){
-    if($debug==1){print "in greeting flag, got $greeting.";}
+    if($debug==1){print "in greeting flag, got $greeting.\tGiven filter $filters, status $status\n";}
     if($greeting ne ''){ my $date = localtime->strftime('%A, %b %d %Y'); print "$date | Todo List:\n=====================================\n";}
     list_todos($todofile, $filters, $status);
 }
