@@ -3,7 +3,8 @@ use strict;
 use warnings; # Good to have
 use Getopt::Long; # Arg Parse
 use FindBin '$Bin'; # Get location
-use Time::Piece; # Date and Time Formatting
+# use Time::Piece; # Date and Time Formatting <<- terrible api
+use DateTime;
 use Term::ANSIColor; # Colours
 use Config::Tiny; # Config time
 
@@ -38,34 +39,43 @@ if($help){ # YATL on Slant Relief
     #    print '       _______\/\\\_______\/\\\_______\/\\\_______\/\\\_______\/\\\\\\\\\\\\\\\_ ', "\n";
     #    print '        _______\///________\///________\///________\///________\///////////////__', "\n";
     #    YATL in blocks
-    print " .-----------------. .----------------.  .----------------.  .----------------.  .----------------.", "\n";
-    print "| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |", "\n";
-    print "| | ____  _____  | || |     _____    | || |      __      | || |  _________   | || |   _____      | |", "\n";
-    print "| ||_   \\|_   _| | || |    |_   _|   | || |     /  \\     | || | |  _   _  |  | || |  |_   _|     | |", "\n";
-    print "| |  |   \\ | |   | || |      | |     | || |    / /\\ \\    | || | |_/ | | \\_|  | || |    | |       | |", "\n";
-    print "| |  | |\\ \\| |   | || |   _  | |     | || |   / ____ \\   | || |     | |      | || |    | |   _   | |", "\n";
-    print "| | _| |_\\   |_  | || |  | |_' |     | || | _/ /    \\ \\_ | || |    _| |_     | || |   _| |__/ |  | |", "\n";
-    print "| ||_____|\\____| | || |  `.___.'     | || ||____|  |____|| || |   |_____|    | || |  |________|  | |", "\n";
-    print "| |              | || |              | || |              | || |              | || |              | |", "\n";
-    print "| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |", "\n";
-    print " '----------------'  '----------------'  '----------------'  '----------------'  '----------------'", "\n";
+print "__/\\\\\\\\\\_____/\\\\\\______/\\\\\\\\\\\\\\\\\\\\\\_____/\\\\\\\\\\\\\\\\\\_____/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\__/\\\\\\_____________","\n";
+print " _\\/\\\\\\\\\\\\___\\/\\\\\\_____\\/////\\\\\\///____/\\\\\\\\\\\\\\\\\\\\\\\\\\__\\///////\\\\\\/////__\\/\\\\\\_____________","\n";
+print "  _\\/\\\\\\/\\\\\\__\\/\\\\\\_________\\/\\\\\\______/\\\\\\/////////\\\\\\_______\\/\\\\\\_______\\/\\\\\\_____________","\n";
+print "   _\\/\\\\\\//\\\\\\_\\/\\\\\\_________\\/\\\\\\_____\\/\\\\\\_______\\/\\\\\\_______\\/\\\\\\_______\\/\\\\\\_____________","\n";
+print "    _\\/\\\\\\\\//\\\\\\\\/\\\\\\_________\\/\\\\\\_____\\/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_______\\/\\\\\\_______\\/\\\\\\_____________","\n";
+print "     _\\/\\\\\\_\\//\\\\\\/\\\\\\_________\\/\\\\\\_____\\/\\\\\\/////////\\\\\\_______\\/\\\\\\_______\\/\\\\\\_____________","\n";
+print "      _\\/\\\\\\__\\//\\\\\\\\\\\\__/\\\\\\___\\/\\\\\\_____\\/\\\\\\_______\\/\\\\\\_______\\/\\\\\\_______\\/\\\\\\_____________","\n";
+print "       _\\/\\\\\\___\\//\\\\\\\\\\_\\//\\\\\\\\\\\\\\\\\\______\\/\\\\\\_______\\/\\\\\\_______\\/\\\\\\_______\\/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_","\n";
+print "        _\\///_____\\/////___\\/////////_______\\///________\\///________\\///________\\///////////////__","\n";
+#    print " .-----------------. .----------------.  .----------------.  .----------------.  .----------------.", "\n";
+#    print "| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |", "\n";
+#    print "| | ____  _____  | || |     _____    | || |      __      | || |  _________   | || |   _____      | |", "\n";
+#    print "| ||_   \\|_   _| | || |    |_   _|   | || |     /  \\     | || | |  _   _  |  | || |  |_   _|     | |", "\n";
+#    print "| |  |   \\ | |   | || |      | |     | || |    / /\\ \\    | || | |_/ | | \\_|  | || |    | |       | |", "\n";
+#    print "| |  | |\\ \\| |   | || |   _  | |     | || |   / ____ \\   | || |     | |      | || |    | |   _   | |", "\n";
+#    print "| | _| |_\\   |_  | || |  | |_' |     | || | _/ /    \\ \\_ | || |    _| |_     | || |   _| |__/ |  | |", "\n";
+#    print "| ||_____|\\____| | || |  `.___.'     | || ||____|  |____|| || |   |_____|    | || |  |________|  | |", "\n";
+#    print "| |              | || |              | || |              | || |              | || |              | |", "\n";
+#    print "| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |", "\n";
+#    print " '----------------'  '----------------'  '----------------'  '----------------'  '----------------'", "\n";
     print help_me();
     exit;
 }
 # Handling shorthand
-if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
-    if($action eq 'create'){$content   = $ARGV[1] ne ''? $ARGV[1]     : die "Must provide valid content: got $ARGV[1]";}
-    if($action eq 'mark')  {$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index: got $ARGV[1]";
-                            $status    = $ARGV[2] ne ''? $ARGV[2]     : die "Must provide valid status: got $ARGV[2]";}
-    if($action eq 'list')  {$filters   = $#ARGV > 0 ? (grep(!/^$ARGV[1]$/, @status_names) ?  'argv is long and element one is not a status' : '')     : '';
-                            $status    = $#ARGV == 2   ? $ARGV[2]     : $#ARGV == 1 and (grep(/^$ARGV[1]$/, @status_names) ne '')? $ARGV[1] : $ARGV[0];}
-    if($action eq 'edit')  {$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index: got $ARGV[1]";
-                            $content   = $ARGV[2] ne ''? $ARGV[2]     : die "Must provide valid content: got $ARGV[2]";}
-    if($action eq 'delete'){$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index got $ARGV[1]";}
-}
-else{
-    die "Must provide valid action";
-}
+#if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
+#    if($action eq 'create'){$content   = $ARGV[1] ne ''? $ARGV[1]     : die "Must provide valid content: got $ARGV[1]";}
+#    if($action eq 'mark')  {$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index: got $ARGV[1]";
+#                            $status    = $ARGV[2] ne ''? $ARGV[2]     : die "Must provide valid status: got $ARGV[2]";}
+#    if($action eq 'list')  {$filters   = $#ARGV > 0 ? (grep(!/^$ARGV[1]$/, @status_names) ?  'argv is long and element one is not a status' : '')     : '';
+#                            $status    = $#ARGV == 2   ? $ARGV[2]     : $#ARGV == 1 and (grep(/^$ARGV[1]$/, @status_names) ne '')? $ARGV[1] : $ARGV[0];}
+#    if($action eq 'edit')  {$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index: got $ARGV[1]";
+#                            $content   = $ARGV[2] ne ''? $ARGV[2]     : die "Must provide valid content: got $ARGV[2]";}
+#    if($action eq 'delete'){$index     = $ARGV[1] ne ''? $ARGV[1] - 1 : die "Must provide valid index got $ARGV[1]";}
+#}
+#else{
+#    die "Must provide valid action";
+#}
 if($debug){ print "Got a=$action - c=$content\n"; print "Am i using the global array (length $#ARGV)? @ARGV\n"; }
 
 sub help_me {
@@ -85,11 +95,13 @@ sub help_me {
 
 sub list_todos {
     my ($file, $filter, $status) = @_;
+    die "Must provide file to list todos" unless defined $file;
     $filter = '' if !(defined $filter);
     $status = '' if !(defined $status);
     open(my $readfile, '<:encoding(UTF-8)', $file) or die "Could not open todofile '$file'";
     if($debug){print 'in list_todo subroutine: '.$file." size:"; print -s $readfile; print "\n";}
-    my $time_now = Time::Piece->new(); #https://stackoverflow.com/questions/22676764/getting-minutes-difference-between-two-timepiece-objects
+    #my $time_now = Time::Piece->new(); #https://stackoverflow.com/questions/22676764/getting-minutes-difference-between-two-timepiece-objects
+    my $time_now = DateTime->now;
     my $offset=" "; my $urgent="";
     if($filter ne '' or $status ne ''){
         my %statuses = (
@@ -103,9 +115,12 @@ sub list_todos {
         while(my $line_todo = <$readfile>){ # <> used for files and globs
             next if ($filter eq '' ? 0 : $line_todo !~ /\+$filter_string/); # filter out tags
             next if ($status eq '' ? 0 : $line_todo !~ /\[$statuses{$status}\]/); # filter out tags
-            $offset = $.; # always get current line number for quick editing
+            $offset = $. - 1; # always get current line number for quick editing
+	    $offset =~ s/^(\d)$/ $1/;
             chomp $line_todo; # removes trailing new line
-            $urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
+	    my @todo_date = ($line_todo =~ /(?<=@)\/(\d{4})\/(\d{2})\/(\d{2})/);
+	    if($debug){print "Parsed Date: @todo_date\n";}
+	    #my $urgent = DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
             if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
             elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow")." ".colored("$urgent", "white", "on_red")."\n";}
             elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")." ".colored("$urgent", "white", "on_red")."\n";}
@@ -114,9 +129,13 @@ sub list_todos {
     }
     else{
         while(my $line_todo = <$readfile>){ # <> used for files and globs
-            $offset = ($.%5==0 ? $. : " ");
+            $offset = (($. - 1)%5==0 ? $. - 1 : "  ");
+	    $offset =~ s/^(\d)$/ $1/;
             chomp $line_todo; # removes trailing new line
-            $urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
+	    my @todo_date = ($line_todo =~ /(?<=@)\/(\d{4})\/(\d{2})\/(\d{2})/);
+	    if($debug){print "Given Todo: $line_todo\nParsed Date: @todo_date\n";}
+	    #my $urgent = DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
+#$urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
             if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
             elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "rgb440")." ".colored("$urgent", "white", "on_red")."\n";}
             elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")." ".colored("$urgent", "white", "on_red")."\n";}
@@ -137,7 +156,7 @@ if($action eq 'create'){
 }
 elsif($action eq 'list'){
     if($debug==1){print "in greeting flag, got $greeting.\tGiven filter $filters, status $status\n";}
-    if($greeting ne ''){ my $date = localtime->strftime('%A, %b %d %Y'); print "$date | Todo List:\n=====================================\n";}
+    if($greeting ne ''){ my $date = DateTime->now->strftime('%A, %b %d %Y'); print "$date | Todo List:\n=====================================\n";}
     list_todos($todofile, $filters, $status);
 }
 elsif ($action eq 'mark'){
@@ -180,7 +199,7 @@ elsif($action eq 'delete'){
     open($livefile, '>:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
     print $livefile @todos;
     close $livefile;
-    print @todos;
+    list_todos($todofile, '', '');
 }
 elsif($action eq 'edit'){
     if($index =~ /^\D+$/){die "Must provide integer argument, got $index";}
@@ -198,6 +217,6 @@ elsif($action eq 'edit'){
     open($livefile, '>:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
     print $livefile @todos;
     close $livefile;
-    print @todos;
+    list_todos($todofile, '', '');
 }
 else{ die "Must provide valid action, got: $action"; }

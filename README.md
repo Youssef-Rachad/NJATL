@@ -1,5 +1,7 @@
 # NJATL - Not Just Another Todo List
 
+_See the information you need_
+
 ## Productivity Tracker
 - Include metadata for each todo
 - Query todos by filter
@@ -16,7 +18,10 @@
     - [x] Filter by project
     - [x] Filter by status
 - [ ] Archive mechanism
+    - [ ] Backup
+    - [ ] Hide
 - [x] Shorthand commands and long form
+- [ ] Subtask mechanism
 
 ## Secondary Objectives
 - [ ] Start and End date
@@ -44,3 +49,8 @@ Note that the shorthand uses are strict in formatting
 - njatl edit idx 'my todo @due+project'
     - njatl -action=edit -index=idx -content='my todo @due+project'
     - (TODO) njatl -action=edit -index=idx -task='my todo' -duedate='due' -projects='project project'
+
+## Bug Hunt
+- [ ] Make filters and status optional in list
+- [ ] Fix shorthands
+- [ ] Use a better date and time api
