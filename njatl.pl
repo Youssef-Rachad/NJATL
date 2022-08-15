@@ -111,15 +111,24 @@ sub list_todos {
             $Config->{status}->{complete} => 'x'
         );
         my $filter_string = "(".join('|', split(/\+/, $filter)).")";
-        if($debug){print "\nfilter on regex $filter_string\n";}
+	my $status_string = "(".join('|', map('\['.$statuses{$_}.'\]', split(/\+/, $status))).")";
+        if($debug){print "\nfilter on regex $filter_string\n";print "\nstatus on regex $status_string\n"; print "\nfilters $filter";}
         while(my $line_todo = <$readfile>){ # <> used for files and globs
             next if ($filter eq '' ? 0 : $line_todo !~ /\+$filter_string/); # filter out tags
-            next if ($status eq '' ? 0 : $line_todo !~ /\[$statuses{$status}\]/); # filter out tags
+	    #next if ($status eq '' ? 0 : $line_todo !~ /\[$statuses{$status}\]/); # filter out tags
+            next if ($status eq '' ? 0 : $line_todo !~ /$status_string/); # filter out tags
             $offset = $. - 1; # always get current line number for quick editing
 	    $offset =~ s/^(\d)$/ $1/;
             chomp $line_todo; # removes trailing new line
 	    my @todo_date = ($line_todo =~ /(?<=@)\/(\d{4})\/(\d{2})\/(\d{2})/);
 	    if($debug){print "Parsed Date: @todo_date\n";}
+	    if(scalar @todo_date > 0) {
+		    if($debug){print "We have a due\n";}
+		    my $diff= DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days;
+		    if($debug){print "Got distance of: $diff\n";}
+		    $urgent = $diff < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
+		   if($debug){print "Tis of urgency: $urgent\n";}
+	   }
 	    #my $urgent = DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
             if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
             elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow")." ".colored("$urgent", "white", "on_red")."\n";}
@@ -134,10 +143,16 @@ sub list_todos {
             chomp $line_todo; # removes trailing new line
 	    my @todo_date = ($line_todo =~ /(?<=@)\/(\d{4})\/(\d{2})\/(\d{2})/);
 	    if($debug){print "Given Todo: $line_todo\nParsed Date: @todo_date\n";}
-	    #my $urgent = DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
+	    if(scalar @todo_date > 0) {
+		    if($debug){print "We have a due\n";}
+		    my $diff= DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days;
+		    if($debug){print "Got distance of: $diff\n";}
+		    $urgent = $diff < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
+		   if($debug){print "Tis of urgency: $urgent\n";}
+	   }
 #$urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
             if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
-            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "rgb440")." ".colored("$urgent", "white", "on_red")."\n";}
+            elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "rgb440")." ",colored("$urgent", "white", "on_red")."\n";}
             elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")." ".colored("$urgent", "white", "on_red")."\n";}
             else{ print $offset.$line_todo." ".colored("$urgent", "white", "on_red")."\n";}
         }

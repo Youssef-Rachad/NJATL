@@ -21,6 +21,7 @@ _See the information you need_
     - [ ] Backup
     - [ ] Hide
 - [x] Shorthand commands and long form
+- [ ] Dont show old completed tasks (fcg time, and filter, use archive mechanism? automate?)
 - [ ] Subtask mechanism
 
 ## Secondary Objectives
