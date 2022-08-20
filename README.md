@@ -1,6 +1,6 @@
 # NJATL - Not Just Another Todo List
 
-_See the information you need_
+_Show me the information I need_
 
 ## Productivity Tracker
 - Include metadata for each todo
@@ -54,4 +54,5 @@ Note that the shorthand uses are strict in formatting
 ## Bug Hunt
 - [ ] Make filters and status optional in list
 - [ ] Fix shorthands
+- [ ] Differentiate status and filter seperator token
 - [ ] Use a better date and time api

@@ -9,7 +9,8 @@ use Term::ANSIColor; # Colours
 use Config::Tiny; # Config time
 
 use experimental qw( switch ); # Sqitch Casee
-
+use Term::ReadLine::Perl5;
+my $term = Term::ReadLine::Perl5->new("NJATL - Edit todo");
 my $Config = Config::Tiny->read($Bin.'/njatl.cfg') or die "Could not open config file. Check 'njatl.cfg' in same directory as 'njatl.pl'";
 my @status_names = (
 	"$Config->{status}->{todo}    ",
@@ -50,22 +51,30 @@ if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
 		$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
 		$status    = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid status: got $ARGV[2]";
 	}
-	#if($action eq 'list')  {
+	if($action eq 'list')  {
+		if(defined $ARGV[1]){
+		       if($ARGV[1] =~ /(\+\s)+/) {
+			$filters = $ARGV[1];
+			if(defined $ARGV[2]){$status = $ARGV[2];}
+		}else{
+			$status = $ARGV[1];
+		}
+		}elsif(defined $ARGV[2] && $ARGV[2] =~ /(\+\s)+/){
+			$filters = $ARGV[2];
+			$status = $ARGV[1];
+		}
 	#	$filters   = $#ARGV > 0 ? (grep(!/^$ARGV[1]$/, @status_names) ?  'argv is long and element one is not a status' : '')     : '';
 	#	$status    = $#ARGV == 2   ? $ARGV[2]     : $#ARGV == 1 and (grep(/^$ARGV[1]$/, @status_names) ne '')? $ARGV[1] : $ARGV[0];
-	#}
+	}
 	if($action eq 'edit')  {
 		$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
-		$content   = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid content: got $ARGV[2]";
+		#$content   = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid content: got $ARGV[2]"; no need for content
 	}
 	if($action eq 'delete'){
 		$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index got $ARGV[1]";
 	}
 }
-else{
-	die "Must provide valid action";
-}
-if($debug){ print "Got a=$action - c=$content\n"; print "Am i using the global array (length $#ARGV)? @ARGV\n"; }
+if($debug){ print "Got a=$action - c=$content - s=$status - f=$filters\n"; print "Am i using the global array (length $#ARGV)? @ARGV\n"; exit}
 
 sub help_me {
 	return "Usage: Not Just Another Todo List".
@@ -83,29 +92,29 @@ sub help_me {
 }
 
 sub list_todos {
-	my ($file, $filter, $status) = @_;
+	my ($file, $list_filter, $list_status) = @_;
 	die "Must provide file to list todos" unless defined $file;
-	$filter = '' if !(defined $filter);
-	$status = '' if !(defined $status);
+	$list_filter = '' if !(defined $list_filter);
+	$list_status = '' if !(defined $list_status);
 	open(my $readfile, '<:encoding(UTF-8)', $file) or die "Could not open todofile '$file'";
 	if($debug){print 'in list_todo subroutine: '.$file." size:"; print -s $readfile; print "\n";}
 	#my $time_now = Time::Piece->new(); #https://stackoverflow.com/questions/22676764/getting-minutes-difference-between-two-timepiece-objects
 	my $time_now = DateTime->now;
 	my $offset=" "; my $urgent="";
-	if($filter ne '' or $status ne ''){
+	if($list_filter ne '' or $list_status ne ''){
 		my %statuses = (
 			$Config->{status}->{todo}     => ' ',
 			$Config->{status}->{progress} => '-',
 			$Config->{status}->{review}   => 'r',
 			$Config->{status}->{complete} => 'x'
 		);
-		my $filter_string = "(".join('|', split(/\+/, $filter)).")";
-		my $status_string = "(".join('|', map('\['.$statuses{$_}.'\]', split(/\+/, $status))).")";
-		if($debug){print "\nfilter on regex $filter_string\n";print "\nstatus on regex $status_string\n"; print "\nfilters $filter";}
+		my $filter_string = "(".join('|', split(/\+/, $list_filter)).")";
+		my $status_string = "(".join('|', map('\['.$statuses{$_}.'\]', split(/\+/, $list_status))).")";
+		if($debug){print "\nfilter on regex $filter_string\n";print "\nstatus on regex $status_string\n"; print "\nfilters $list_filter";}
 		while(my $line_todo = <$readfile>){ # <> used for files and globs
-			next if ($filter eq '' ? 0 : $line_todo !~ /\+$filter_string/); # filter out tags
+			next if ($list_filter eq '' ? 0 : $line_todo !~ /\+$filter_string/); # filter out tags
 			#next if ($status eq '' ? 0 : $line_todo !~ /\[$statuses{$status}\]/); # filter out tags
-			next if ($status eq '' ? 0 : $line_todo !~ /$status_string/); # filter out tags
+			next if ($list_status eq '' ? 0 : $line_todo !~ /$status_string/); # filter out tags
 			$offset = $. - 1; # always get current line number for quick editing
 			$offset =~ s/^(\d)$/ $1/;
 			chomp $line_todo; # removes trailing new line
@@ -217,9 +226,12 @@ elsif($action eq 'edit'){
 		die "Index provided ($index) exceeds todo-list length (".scalar @todos.")";
 	}
 	if($debug){print $todos[$index];}
-	my $current_status = ($todos[$index] =~ /\[(.)\]/) ? $1 : " ";
-	if($debug){print "\n current status is: $current_status\n";}
-	$todos[$index] = "[$current_status] $content\n";
+	#Deprecated for now
+	#my $current_status = ($todos[$index] =~ /\[(.)\]/) ? $1 : " ";
+	#if($debug){print "\n current status is: $current_status\n";}
+	print "Enter 'cancel' or ctrl-c to cancel the edit\n";
+	my $new_todo = $term->readline("Edit: ",$todos[$index]);
+	if(lc($new_todo) ne 'cancel'){ $todos[$index] = "$new_todo\n"; }
 	open($livefile, '>:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
 	print $livefile @todos;
 	close $livefile;
