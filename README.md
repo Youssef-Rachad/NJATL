@@ -30,29 +30,31 @@ _Show me the information I need_
 - [ ] Interactive editing (can get a reference for the todo
         before making an edit)
 - [ ] Test the app
+- [ ] implement creating and editing as ``` njatl -action=edit -index=idx -task='my todo' -duedate='due' -projects='project project'```
+
 
 ## Usage
 Note that the shorthand uses are strict in formatting
 
 - njatl create 'my todo @due+project+project'
     - njatl -action=create -content='my todo @due+project+project'
-    - (TODO) njatl -action=create -task='my todo' -duedate='due' -projects='project project'
 
 - njatl mark idx status
     - njatl -action=mark -index=idx -status=status
 
-- njatl list filters statuses
+- njatl list (status+status+..., filter+filter+...)
     - njatl -action=list -filter=filters -status=statuses
+
+_Passing 2 arguments indicates statuses then filters, Passing 1 argument indicates either statuses (if valid) **or** filters, Passing no arguments prints all entries_
 
 - njatl remove idx
     - njatl -action=remove -index=idx
 
-- njatl edit idx 'my todo @due+project'
-    - njatl -action=edit -index=idx -content='my todo @due+project'
-    - (TODO) njatl -action=edit -index=idx -task='my todo' -duedate='due' -projects='project project'
+- njatl edit idx
+    - njatl -action=edit -index=idx
 
 ## Bug Hunt
-- [ ] Make filters and status optional in list
-- [ ] Fix shorthands
+- [x] Make filters and status optional in list
+- [x] Fix shorthands
 - [ ] Differentiate status and filter seperator token
-- [ ] Use a better date and time api
+- [x] Use a better date and time api

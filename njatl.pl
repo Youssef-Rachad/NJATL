@@ -44,6 +44,7 @@ if($help){
 }
 # Handling shorthand
 if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
+	if($debug){print "Got action: $ARGV[0]\n";}
 	if($action eq 'create'){
 		$content   = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid content: got $ARGV[1]";
 	}
@@ -52,19 +53,27 @@ if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
 		$status    = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid status: got $ARGV[2]";
 	}
 	if($action eq 'list')  {
-		if(defined $ARGV[1]){
-		       if($ARGV[1] =~ /(\+\s)+/) {
-			$filters = $ARGV[1];
-			if(defined $ARGV[2]){$status = $ARGV[2];}
-		}else{
-			$status = $ARGV[1];
-		}
-		}elsif(defined $ARGV[2] && $ARGV[2] =~ /(\+\s)+/){
-			$filters = $ARGV[2];
-			$status = $ARGV[1];
-		}
-	#	$filters   = $#ARGV > 0 ? (grep(!/^$ARGV[1]$/, @status_names) ?  'argv is long and element one is not a status' : '')     : '';
-	#	$status    = $#ARGV == 2   ? $ARGV[2]     : $#ARGV == 1 and (grep(/^$ARGV[1]$/, @status_names) ne '')? $ARGV[1] : $ARGV[0];
+		# If no args follow then list everything
+		# If 1 arg then check if it's a status else it's a filter
+		# If 2 args then follow [status, filter]
+		if(!defined $ARGV[1]){if($debug){print "case 1";}$status = ""; $filters = "";}
+		elsif(!defined $ARGV[2]){
+			print "Entering foreach with arg: '$ARGV[1]'\n";
+			my $firstthing = (split(/\+/, $ARGV[1]))[0];
+			foreach (@status_names){
+				$firstthing =~ s/\s+$//;
+				$_ =~ s/\s+$//;
+				if($debug){print "One argument provided - status: '$firstthing' is same as '$_'\n"; }
+				if ($firstthing eq $_){
+					if($debug){print "One argument provided - status: $ARGV[1] is same as $_\n";}
+					$status = $ARGV[1];
+					last;
+				}
+			}
+			if($debug){print "One agrument - status: $status";}
+			if($status eq ''){$filters = $ARGV[1]; }
+	}
+		else{if($debug){print "case 3"};$status = $ARGV[1]; $filters = $ARGV[2];}
 	}
 	if($action eq 'edit')  {
 		$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
