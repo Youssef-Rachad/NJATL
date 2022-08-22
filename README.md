@@ -7,6 +7,12 @@ _Show me the information I need_
 - Query todos by filter
 - Get reminders
 
+## Requirements
+1. Getopt::Long
+1. Config::Tiny
+1. Term::ReadLine
+1. Term::ReadLine::Perl5
+
 ## Main Objectives
 - [x] CRUD complete
 - [DEPRECATED] Implement priority
