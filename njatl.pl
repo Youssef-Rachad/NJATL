@@ -21,13 +21,13 @@ my @status_names = (
 print $status_names[0]=~/^todo\n$/;
 my $debug=0   ;
 my $action='' ; my $content=''; my $index=''; my $filters=''; my $status='';
-my $greeting=0; my $help=''   ;
+my $help=''   ;
 # save arguments following -w or --word in the scalar
 # =s means that an argument follows
 GetOptions(
 	'action=s' => \$action  , 'content=s' => \$content,
 	'index=i' => \$index    , 'filter=s' => \$filters , 'status=s' => \$status,
-	'greeting' => \$greeting, 'help' => \$help        , 'debug' => \$debug);
+	'help' => \$help        , 'debug' => \$debug);
 
 if($help){
 	print "__/\\\\\\\\\\_____/\\\\\\______/\\\\\\\\\\\\\\\\\\\\\\_____/\\\\\\\\\\\\\\\\\\_____/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\__/\\\\\\_____________","\n";
@@ -58,7 +58,7 @@ if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
 		# If 2 args then follow [status, filter]
 		if(!defined $ARGV[1]){if($debug){print "case 1";}$status = ""; $filters = "";}
 		elsif(!defined $ARGV[2]){
-			print "Entering foreach with arg: '$ARGV[1]'\n";
+			#print "Entering foreach with arg: '$ARGV[1]'\n";
 			my $firstthing = (split(/\+/, $ARGV[1]))[0];
 			foreach (@status_names){
 				$firstthing =~ s/\s+$//;
@@ -95,12 +95,12 @@ sub help_me {
 	"\n\t\tdelete\tnjatl delete idx".
 	"\n\tcontent:STRING\tstring to be passed for create and edit actions".
 	"\n\tindex:Integer\tinteger for mark, edit and delete actions. Indices start at 1".
-	"\n\tgreeting:FLAG\toptional for greeting in list action".
 	"\n\thelp:FLAG\tthis message :))".
 	"\n\tdebug:FLAG\toptional for debugging messages\n";
 }
 
 sub list_todos {
+	my $date = DateTime->now->strftime('%A, %b %d %Y'); print "$date | Todo List:\n=====================================\n";
 	my ($file, $list_filter, $list_status) = @_;
 	die "Must provide file to list todos" unless defined $file;
 	$list_filter = '' if !(defined $list_filter);
@@ -177,8 +177,7 @@ if($action eq 'create'){
 	close $livefile;
 }
 elsif($action eq 'list'){
-	if($debug==1){print "in greeting flag, got $greeting.\tGiven filter $filters, status $status\n";}
-	if($greeting ne ''){ my $date = DateTime->now->strftime('%A, %b %d %Y'); print "$date | Todo List:\n=====================================\n";}
+	if($debug==1){print "Given filter $filters, status $status\n";}
 	list_todos($todofile, $filters, $status);
 }
 elsif ($action eq 'mark'){
