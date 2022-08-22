@@ -27,7 +27,7 @@ _Show me the information I need_
 ## Secondary Objectives
 - [ ] Start and End date
 - [ ] Calendar integration
-- [ ] Interactive editing (can get a reference for the todo
+- [x] Interactive editing (can get a reference for the todo
         before making an edit)
 - [ ] Test the app
 - [ ] implement creating and editing as ``` njatl -action=edit -index=idx -task='my todo' -duedate='due' -projects='project project'```
@@ -36,8 +36,8 @@ _Show me the information I need_
 ## Usage
 Note that the shorthand uses are strict in formatting
 
-- njatl create 'my todo @due+project+project'
-    - njatl -action=create -content='my todo @due+project+project'
+- njatl create 'my todo @/due+project+project'
+    - njatl -action=create -content='my todo @/due+project+project'
 
 - njatl mark idx status
     - njatl -action=mark -index=idx -status=status
@@ -47,8 +47,8 @@ Note that the shorthand uses are strict in formatting
 
 _Passing 2 arguments indicates statuses then filters, Passing 1 argument indicates either statuses (if valid) **or** filters, Passing no arguments prints all entries_
 
-- njatl remove idx
-    - njatl -action=remove -index=idx
+- njatl delete idx
+    - njatl -action=delete -index=idx
 
 - njatl edit idx
     - njatl -action=edit -index=idx
@@ -58,3 +58,4 @@ _Passing 2 arguments indicates statuses then filters, Passing 1 argument indicat
 - [x] Fix shorthands
 - [ ] Differentiate status and filter seperator token
 - [x] Use a better date and time api
+- [ ] Do not interpolate '@' sign in file
