@@ -45,9 +45,7 @@ if($help){
 # Handling shorthand
 if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
 	if($debug){print "Got action: $ARGV[0]\n";}
-	if($action eq 'create'){
-		$content   = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid content: got $ARGV[1]";
-	}
+	if($action eq 'create'){ $content = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid content: got $ARGV[1]"; }
 	if($action eq 'mark')  {
 		$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
 		$status    = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid status: got $ARGV[2]";
@@ -58,7 +56,6 @@ if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
 		# If 2 args then follow [status, filter]
 		if(!defined $ARGV[1]){if($debug){print "case 1";}$status = ""; $filters = "";}
 		elsif(!defined $ARGV[2]){
-			#print "Entering foreach with arg: '$ARGV[1]'\n";
 			my $firstthing = (split(/\+/, $ARGV[1]))[0];
 			foreach (@status_names){
 				$firstthing =~ s/\s+$//;
@@ -75,15 +72,10 @@ if($action eq '' and $#ARGV > -1){ $action = $ARGV[0];
 	}
 		else{if($debug){print "case 3"};$status = $ARGV[1]; $filters = $ARGV[2];}
 	}
-	if($action eq 'edit')  {
-		$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]";
-		#$content   = $ARGV[2] ne ''? $ARGV[2] : die "Must provide valid content: got $ARGV[2]"; no need for content
-	}
-	if($action eq 'delete'){
-		$index     = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index got $ARGV[1]";
-	}
+	if($action eq 'edit')  { $index = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index: got $ARGV[1]"; }
+	if($action eq 'delete'){ $index = $ARGV[1] ne ''? $ARGV[1] : die "Must provide valid index got $ARGV[1]"; }
 }
-if($debug){ print "Got a=$action - c=$content - s=$status - f=$filters\n"; print "Am i using the global array (length $#ARGV)? @ARGV\n"; exit}
+if($debug){ print "Got a=$action - c=$content - s=$status - f=$filters\n"; print "Am i using the global array (length $#ARGV)? @ARGV\n";}
 
 sub help_me {
 	return "Usage: Not Just Another Todo List".
@@ -107,7 +99,6 @@ sub list_todos {
 	$list_status = '' if !(defined $list_status);
 	open(my $readfile, '<:encoding(UTF-8)', $file) or die "Could not open todofile '$file'";
 	if($debug){print 'in list_todo subroutine: '.$file." size:"; print -s $readfile; print "\n";}
-	#my $time_now = Time::Piece->new(); #https://stackoverflow.com/questions/22676764/getting-minutes-difference-between-two-timepiece-objects
 	my $time_now = DateTime->now;
 	my $offset=" "; my $urgent="";
 	if($list_filter ne '' or $list_status ne ''){
@@ -122,25 +113,24 @@ sub list_todos {
 		if($debug){print "\nfilter on regex $filter_string\n";print "\nstatus on regex $status_string\n"; print "\nfilters $list_filter";}
 		while(my $line_todo = <$readfile>){ # <> used for files and globs
 			next if ($list_filter eq '' ? 0 : $line_todo !~ /\+$filter_string/); # filter out tags
-			#next if ($status eq '' ? 0 : $line_todo !~ /\[$statuses{$status}\]/); # filter out tags
 			next if ($list_status eq '' ? 0 : $line_todo !~ /$status_string/); # filter out tags
 			$offset = $. - 1; # always get current line number for quick editing
 			$offset =~ s/^(\d)$/ $1/;
 			chomp $line_todo; # removes trailing new line
-			my @todo_date = ($line_todo =~ /(?<=@)\/(\d{4})\/(\d{2})\/(\d{2})/);
+			my @todo_date = ($line_todo =~ /(?<=@)(\d{4})\/(\d{2})\/(\d{2})/);
+			$urgent = "";
 			if($debug){print "Parsed Date: @todo_date\n";}
 			if(scalar @todo_date > 0) {
 				if($debug){print "We have a due\n";}
 				my $diff= DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days;
 				if($debug){print "Got distance of: $diff\n";}
-				$urgent = $diff < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
+				$urgent = $diff < $Config->{deadline}->{alarm_days} ? "SOON": "";
 				if($debug){print "Tis of urgency: $urgent\n";}
 			}
-			#my $urgent = DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
 			if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
-			elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow")." ".colored("$urgent", "white", "on_red")."\n";}
-			elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")." ".colored("$urgent", "white", "on_red")."\n";}
-			else{ print $offset.$line_todo." ".colored("$urgent", "white", "on_red")."\n";}
+			elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "bright_yellow")."\t".colored("$urgent", "white", "on_red")."\n";}
+			elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")."\t".colored("$urgent", "white", "on_red")."\n";}
+			else{ print $offset.$line_todo."\t".colored("$urgent", "white", "on_red")."\n";}
 		}
 	}
 	else{
@@ -148,20 +138,20 @@ sub list_todos {
 			$offset = (($. - 1)%5==0 ? $. - 1 : "  ");
 			$offset =~ s/^(\d)$/ $1/;
 			chomp $line_todo; # removes trailing new line
-			my @todo_date = ($line_todo =~ /(?<=@)\/(\d{4})\/(\d{2})\/(\d{2})/);
+			my @todo_date = ($line_todo =~ /(?<=@)(\d{4})\/(\d{2})\/(\d{2})/);
+			$urgent = "";
 			if($debug){print "Given Todo: $line_todo\nParsed Date: @todo_date\n";}
 			if(scalar @todo_date > 0) {
 				if($debug){print "We have a due\n";}
 				my $diff= DateTime->new(year=>$todo_date[0], month=>$todo_date[1], day=>$todo_date[2], hour=>$time_now->hour, minute=>$time_now->minute, second=>$time_now->second, nanosecond=>$time_now->nanosecond)->subtract_datetime($time_now)->days;
 				if($debug){print "Got distance of: $diff\n";}
-				$urgent = $diff < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
+				$urgent = $diff < $Config->{deadline}->{alarm_days} ? "SOON": "";
 				if($debug){print "Tis of urgency: $urgent\n";}
 			}
-			#$urgent = int(($time_now->strptime($line_todo =~/(?<=@)(\d{4}\/\d{2}\/\d{2})/, "%Y/%m/%d") - $time_now)->days + 0.99) < $Config->{deadline}->{alarm_days} ? "\tSOON": "";
 			if($line_todo =~ /\[x\]/)    {print colored($offset.$line_todo."\n", "bright_green");}
-			elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "rgb440")." ",colored("$urgent", "white", "on_red")."\n";}
-			elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")." ".colored("$urgent", "white", "on_red")."\n";}
-			else{ print $offset.$line_todo." ".colored("$urgent", "white", "on_red")."\n";}
+			elsif($line_todo =~ /\[r\]/) {print colored($offset.$line_todo, "rgb440")."\t",colored("$urgent", "white", "on_red")."\n";}
+			elsif($line_todo =~ /\[-\]/) {print colored($offset.$line_todo, "bright_cyan")."\t".colored("$urgent", "white", "on_red")."\n";}
+			else{ print $offset.$line_todo."\t".colored("$urgent", "white", "on_red")."\n";}
 		}
 	}
 	print "End of list\n";
