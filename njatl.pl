@@ -1,16 +1,15 @@
 #!/usr/bin/perl
 use strict;
-use warnings; # Good to have
-use Getopt::Long; # Arg Parse
-use FindBin '$Bin'; # Get location
-# use Time::Piece; # Date and Time Formatting <<- terrible api
-use DateTime;
-use Term::ANSIColor; # Colours
-use Config::Tiny; # Config time
+use warnings;                  # Good to have
+use Getopt::Long;              # Arg Parse
+use FindBin '$Bin';            # Get location
+use DateTime;                  # Good DnT api
+use Term::ANSIColor;           # Colours
+use Config::Tiny;              # Config time
+use experimental qw( switch ); # Switch Case
+use Term::ReadLine::Perl5;     # Preput prompt
 
-use experimental qw( switch ); # Sqitch Casee
-use Term::ReadLine::Perl5;
-my $term = Term::ReadLine::Perl5->new("NJATL - Edit todo");
+#my $term = Term::ReadLine::Perl5->new("NJATL - Edit todo");
 my $Config = Config::Tiny->read($Bin.'/njatl.cfg') or die "Could not open config file. Check 'njatl.cfg' in same directory as 'njatl.pl'";
 my @status_names = (
 	"$Config->{status}->{todo}    ",
@@ -158,7 +157,6 @@ sub list_todos {
 	close $readfile;
 
 }
-# TODO check that args are valid before accessing todo file
 my $todofile = $Bin.'/todo.txt';
 if($action eq 'create'){
 	open(my $livefile, '>>:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
@@ -228,8 +226,8 @@ elsif($action eq 'edit'){
 	#my $current_status = ($todos[$index] =~ /\[(.)\]/) ? $1 : " ";
 	#if($debug){print "\n current status is: $current_status\n";}
 	print "Enter 'cancel' or ctrl-c to cancel the edit\n";
-	my $new_todo = $term->readline("Edit: ",$todos[$index]);
-	if(lc($new_todo) ne 'cancel'){ $todos[$index] = "$new_todo\n"; }
+	my $new_todo = Term::ReadLine::Perl5->new("NJATL")->readline("Edit: ",$todos[$index]);
+	if(lc($new_todo) ne 'cancel' or $new_todo ne ''){ $todos[$index] = "$new_todo\n"; }
 	open($livefile, '>:encoding(UTF-8)', $todofile) or die "Could not open todofile '$todofile'";
 	print $livefile @todos;
 	close $livefile;
